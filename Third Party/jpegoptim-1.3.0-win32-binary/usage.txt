@@ -1,0 +1,34 @@
+jpegoptim v1.3.0  Copyright (c) Timo Kokkonen, 1996-2013.
+Usage: jpegoptim [options] <filenames>
+
+  -d<path>, --dest=<path>
+                    specify alternative destination directory for
+                    optimized files (default is to overwrite originals)
+  -f, --force       force optimization
+  -h, --help        display this help and exit
+  -m<quality>, --max=<quality>
+                    set maximum image quality factor (disables lossless
+                    optimization mode, which is by default on)
+                    Valid quality values: 0 - 100
+  -n, --noaction    don't really optimize files, just print results
+  -S<size>, --size=<size>
+                    Try to optimize file to given size (disables lossless
+                    optimizaiont mode). Target size is specified either in
+                    kilo bytes (1 - n) or as percentage (1% - 99%)
+  -T<treshold>, --threshold=<treshold>
+                    keep old file if the gain is below a threshold (%)
+  -o, --overwrite   overwrite target file even if it exists
+  -p, --preserve    preserve file timestamps
+  -q, --quiet       quiet mode
+  -t, --totals      print totals after processing all files
+  -v, --verbose     enable verbose mode (positively chatty)
+  -V, --version     print program version
+
+  --strip-all       strip all (Comment & Exif) markers from output file
+  --strip-com       strip Comment markers from output file
+  --strip-exif      strip Exif markers from output file
+  --strip-iptc      strip IPTC markers from output file
+  --strip-icc       strip ICC profile markers from output file
+
+  --all-normal      force all output files to be non-progressive
+  --all-progressive force all output files to be progressive

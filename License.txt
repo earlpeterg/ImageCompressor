@@ -1,0 +1,33 @@
+Image Compressor
+Developed by: Earl Peter G
+Website: http://www.earlpeter.com
+A simple tool that allows you to compress images without losing quality.
+This application supports the JPG and PNG image formats.
+
+For comments, suggestions, reports for bugs, or any other message,
+you may click the "Send feedback" button from the program anytime.
+Alternatively, you may contact me using the contact form on my
+website: http://earlpeter.com/contact/.
+
+Copyright © 2017, Earl Peter G
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+This application uses the following library:
+Guetzli v1.0.1 Copyright (C) Google Inc.
+https://github.com/google/guetzli/releases
+Jpegoptim v1.3.0 Copyright (c) Timo Kokkonen, 1996,2013.
+https://sourceforge.net/projects/jpegoptim/
+optipng 0.7.6 Copyright (C) 2001-2016 Cosmin Truta and the Contributing Authors.
+https://sourceforge.net/projects/optipng/
+By using this application, you also agree to their respective license agreement.
