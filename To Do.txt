@@ -4,10 +4,7 @@
 +Add welcome image
 +Add support for FTP/SFTP/SSH/SCP with WinSCP
 +Add support for add folders and subdirectories in settings
-+Don't close when processing is not yet completed
 +Add option for bound to maximum dimensions
 *Update cursor functionality
 *Double clicking on row should open file
 *In calculating total, include total percentage
-*Cancelled files should be recalculated
-*Remove app data files
