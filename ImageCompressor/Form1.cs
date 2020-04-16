@@ -446,11 +446,11 @@ namespace ImageCompressor
         }
         private void CheckForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            new UpdateHelper("ICP", "http://earlpeter.com/programs/image-compressor", Application.ProductVersion).PerformUpdateCheck(true);
+            new UpdateHelper("ICP", "http://earlp.ru/image-compressor", Application.ProductVersion).PerformUpdateCheck(true);
         }
         private void SendFeedbackToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start("http://www.earlpeter.com/contact-me/feedback/?ref=Image%20Compressor%20" + Application.ProductVersion);
+            Process.Start("https://www.earlpeter.com/contact/?subject=Image%20Compressor%20" + Application.ProductVersion);
         }
         private void AboutMenuItem_Click(object sender, EventArgs e)
         {
