@@ -1,15 +1,12 @@
 Image Compressor
-Developed by: Earl Peter G
-Website: http://www.earlpeter.com
-A simple tool that allows you to compress images without losing quality.
-This application supports the JPG and PNG image formats.
+A simple tool that allows you to compress images in JPG or PNG formats without losing quality.
 
 For comments, suggestions, reports for bugs, or any other message,
-you may click the "Send feedback" button from the program anytime.
+you may click the "Send feedback" button or submit an issue in the GitHub page.
 Alternatively, you may contact me using the contact form on my
 website: http://earlpeter.com/contact/.
 
-Copyright © 2017, Earl Peter G
+Copyright © 2017 Earl Peter G
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +20,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-This application uses the following library:
+This application uses the following libraries:
 Guetzli v1.0.1 Copyright (C) Google Inc.
 https://github.com/google/guetzli/releases
 Jpegoptim v1.3.0 Copyright (c) Timo Kokkonen, 1996,2013.
