@@ -1,4 +1,5 @@
-﻿using EarlPeterG;
+using Dasync.Collections;
+using EarlPeterG;
 using EarlPeterG.IO;
 using EarlPeterG.Win;
 using EarlPeterG.Win.Forms;
@@ -9,6 +10,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -18,16 +20,17 @@ namespace ImageCompressor
     {
         public string[] Args { get; set; }
 
-        private string iniFilePath = Path.Combine(Program.GetAppDataPath(), "settings.ini");
-        private string errorLogPath = Path.Combine(Program.GetAppDataPath(), "error.log");
-        private string jpegOptimPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\jpegoptim.exe");
-        private string guetzlix86Path = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\guetzli_windows_x86.exe");
-        private string optiPngPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\optipng.exe");
-        private decimal memoryLimit = Math.Round(new ComputerInfo().TotalPhysicalMemory * 0.75m / 1048576);
-        private bool stopWorking = false;
-        private int currentProcessId = -1;
+        private readonly string iniFilePath = Path.Combine(Program.GetAppDataPath(), "settings.ini");
+        private readonly string errorLogPath = Path.Combine(Program.GetAppDataPath(), "error.log");
+        private readonly string jpegOptimPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\jpegoptim.exe");
+        private readonly string guetzlix86Path = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\guetzli_windows_x86.exe");
+        private readonly string optiPngPath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "lib\\optipng.exe");
+        private readonly decimal memoryLimit = Math.Round(new ComputerInfo().TotalPhysicalMemory * 0.75m / 1048576);
+        private CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
-        private object threadLock = new object { };
+        private int currentProcessId = -1;
+        private long uncompressedTotal = 0;
+        private long compressedTotal = 0;
 
         #region "Local Functions"
         /// <summary>
@@ -35,14 +38,11 @@ namespace ImageCompressor
         /// </summary>
         private bool IsValidFile(string file)
         {
+            var extensions = new string[] { ".jpeg", ".jpg", ".png" };
             try {
-                var extensions = new string[] { ".jpg", ".png" };
-
                 var fileInfo = new FileInfo(file);
-
                 return extensions.Contains(fileInfo.Extension.ToLower());
-            }
-            catch {
+            } catch {
                 return false;
             }
         }
@@ -50,27 +50,35 @@ namespace ImageCompressor
         /// <summary>
         /// Enumerate files and folders inside a directory
         /// </summary>
-        /// <param name="rootPath">The root directory where the program will start processing files</param>
-        public void EnumerateAddFilesAndDir(string rootPath)
+        /// <param name="path">The root directory where the program will start processing files</param>
+        public void Enumerate(string path)
         {
-            if (rootPath.EndsWith("\\")) rootPath = rootPath.Substring(0, rootPath.Length - 1);
             try {
-                if (File.Exists(rootPath) && IsValidFile(rootPath)) {
-                    DataGridFilesAddRow(rootPath);
-                }
-                else if (Directory.Exists(rootPath)) {
-                    foreach (string file in Directory.GetFiles(rootPath)) {
-                        if (stopWorking) return;
+                var attr = File.GetAttributes(path);
+                if (attr.HasFlag(FileAttributes.Directory)) {
+                    foreach (var file in Directory.GetFiles(path).Where(file => IsValidFile(file))) {
                         DataGridFilesAddRow(file);
                     }
+
+                    foreach (string directory in Directory.GetDirectories(path)) {
+                        if (cancellationToken.IsCancellationRequested) { return; }
+                        Enumerate(directory);
+                    }
+
+                    return;
                 }
-            }
-            catch { }
+            } catch { }
+
+            if (IsValidFile(path)) { DataGridFilesAddRow(path); }
+        }
+
+        public void Enumerate(IEnumerable<string> paths) {
+            foreach(var path in paths) { Enumerate(path); }
         }
 
         private void ToggleSettings()
         {
-            BoxSettings.Visible = !BoxSettings.Visible;
+            boxSettings.Visible = !boxSettings.Visible;
             menuBarTop.Enabled = !menuBarTop.Enabled;
             menuBarSecondary.Enabled = !menuBarSecondary.Enabled;
             dataGridFiles.Enabled = !dataGridFiles.Enabled;
@@ -81,11 +89,9 @@ namespace ImageCompressor
             startToolStripMenuItem.Visible = !startToolStripMenuItem.Visible;
             stopToolStripMenuItem.Visible = !stopToolStripMenuItem.Visible;
             dataGridFiles.Enabled = !dataGridFiles.Enabled;
+            ToggleWaitCursor();
         }
-        private void ToggleWaitCursor()
-        {
-            UseWaitCursor = !UseWaitCursor;
-        }
+        private void ToggleWaitCursor() => UseWaitCursor = !UseWaitCursor;
 
         private void ResetDefaultSettings()
         {
@@ -103,23 +109,20 @@ namespace ImageCompressor
             if (File.Exists(iniFilePath)) {
                 try {
                     var iniFile = new INIClass(iniFilePath);
-                    radioButtonOverwriteOriginal.Checked = iniFile.IniReadValue("", "OverwriteOriginal") == "True";
-                    radioButtonUseDirectory.Checked = iniFile.IniReadValue("", "OverwriteOriginal") != "True";
-                    textBoxOutputDirectory.Text = iniFile.IniReadValue("", "OutputDirectory");
-                    numUpDownNoOfPasses.Value = decimal.Parse(iniFile.IniReadValue("", "NoOfPasses"));
-                    numUpDownJpegQuality.Value = decimal.Parse(iniFile.IniReadValue("", "JpegQuality"));
-                    checkBoxUseHighMemory.Checked = iniFile.IniReadValue("", "UseHighMemory") == "True";
-                    checkBoxRemoveImgMetaData.Checked = iniFile.IniReadValue("", "RemoveImgMetaData") == "True";
-                }
-                catch {
+                    radioButtonOverwriteOriginal.Checked = iniFile.ReadValue("", "OverwriteOriginal") == "True";
+                    radioButtonUseDirectory.Checked = iniFile.ReadValue("", "OverwriteOriginal") != "True";
+                    textBoxOutputDirectory.Text = iniFile.ReadValue("", "OutputDirectory");
+                    numUpDownNoOfPasses.Value = decimal.Parse(iniFile.ReadValue("", "NoOfPasses"));
+                    numUpDownJpegQuality.Value = decimal.Parse(iniFile.ReadValue("", "JpegQuality"));
+                    checkBoxUseHighMemory.Checked = iniFile.ReadValue("", "UseHighMemory") == "True";
+                    checkBoxRemoveImgMetaData.Checked = iniFile.ReadValue("", "RemoveImgMetaData") == "True";
+                } catch {
                     ResetDefaultSettings();
                 }
             }
             // If not, then the application may be started for the first time
-            // Suggest to create an entry in Windows Explorer's context menu
             else {
                 ResetDefaultSettings();
-                // Save default settings
                 SaveSettings();
             }
 
@@ -128,151 +131,131 @@ namespace ImageCompressor
         {
             try {
                 string iniFileDirectory = Path.GetDirectoryName(iniFilePath);
-                if (!Directory.Exists(iniFileDirectory)) Directory.CreateDirectory(iniFileDirectory);
+                if (!Directory.Exists(iniFileDirectory)) { Directory.CreateDirectory(iniFileDirectory); }
 
                 var iniFile = new INIClass(iniFilePath);
-                iniFile.IniWriteValue("", "OverwriteOriginal", radioButtonOverwriteOriginal.Checked.ToString());
-                iniFile.IniWriteValue("", "OverwriteOriginal", (!radioButtonUseDirectory.Checked).ToString());
-                iniFile.IniWriteValue("", "OutputDirectory", textBoxOutputDirectory.Text);
-                iniFile.IniWriteValue("", "NoOfPasses", numUpDownNoOfPasses.Value.ToString());
-                iniFile.IniWriteValue("", "JpegQuality", numUpDownJpegQuality.Value.ToString());
-                iniFile.IniWriteValue("", "UseHighMemory", checkBoxUseHighMemory.Checked.ToString());
-                iniFile.IniWriteValue("", "RemoveImgMetaData", checkBoxRemoveImgMetaData.Checked.ToString());
-            }
-            catch (Exception ex) {
+                iniFile.WriteValue("", "OverwriteOriginal", radioButtonOverwriteOriginal.Checked.ToString());
+                iniFile.WriteValue("", "OverwriteOriginal", (!radioButtonUseDirectory.Checked).ToString());
+                iniFile.WriteValue("", "OutputDirectory", textBoxOutputDirectory.Text);
+                iniFile.WriteValue("", "NoOfPasses", numUpDownNoOfPasses.Value.ToString());
+                iniFile.WriteValue("", "JpegQuality", numUpDownJpegQuality.Value.ToString());
+                iniFile.WriteValue("", "UseHighMemory", checkBoxUseHighMemory.Checked.ToString());
+                iniFile.WriteValue("", "RemoveImgMetaData", checkBoxRemoveImgMetaData.Checked.ToString());
+            } catch (Exception ex) {
                 toolStripBottomStatus.Text = "ERROR: " + ex.Message;
             }
         }
         #endregion
 
         #region "Compress Image Functions"
-        private void CompressImage(string filename, int noOfPasses = 3, bool removeImgMetaData = false)
-        {
-            if (!File.Exists(filename)) throw new Exception("File does not exists.");
-
-            var fileExtension = new FileInfo(filename).Extension.ToLower();
-
-            /*
-			 * libraries usage:
-			 * guetzli --quality <quality> <input_filename> <output_filename>
-			 * jpegoptim --dest="Alternate directory" --force --max=<quality> --strip-all <filenames>
-			 * optiong <file> -o <levels> -out "<path>" -strip/-preserve
-			 */
-            string processPath = "",
-                processArgs = "";
-            if (fileExtension == ".jpg") {
-                if (checkBoxUseHighMemory.Checked) {
-                    processPath = guetzlix86Path;
-                    processArgs = string.Format("--quality {0} --memlimit {1} \"{2}\" \"{3}\"", numUpDownJpegQuality.Value < 84 ? 84 : numUpDownJpegQuality.Value,
-                        memoryLimit, filename,
-                        radioButtonUseDirectory.Checked ? Path.Combine(textBoxOutputDirectory.Text, Path.GetFileName(filename)) : filename);
-                }
-                else {
-                    processPath = jpegOptimPath;
-                    processArgs = string.Format("\"{0}\"{2}{3}", filename, radioButtonOverwriteOriginal.Checked ? "" : "",
-                        radioButtonUseDirectory.Checked ? " --dest=\"" + textBoxOutputDirectory.Text + "\"" : "",
-                        removeImgMetaData ? " --strip-all" : "");
-                }
-            }
-            else if (fileExtension == ".png") {
-                processPath = optiPngPath;
-                processArgs = string.Format("\"{0}\" -o {1}{2}{3}", filename, noOfPasses,
-                    radioButtonUseDirectory.Checked ? " -dir \"" + textBoxOutputDirectory.Text + "\"" : "",
-                    removeImgMetaData ? " -strip all" : "-preserve");
-            }
-            else {
-                throw new Exception("Unknown file format.");
-            }
-
-            var process = ProcessHelper.RunProcessShellExecAsync(processPath, processArgs);
-            currentProcessId = process.Id;
-            process.WaitForExit();
-            currentProcessId = -1;
-        }
-        private async void InitDataGridFilesCompressImages()
+        private async Task InitDataGridFilesCompressImages()
         {
             // check validity of library files
             if (!(File.Exists(jpegOptimPath) && File.Exists(optiPngPath) && File.Exists(guetzlix86Path))) {
                 MessageBox.Show("ERROR: Some program files cannot be found. Please reinstall application.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (radioButtonUseDirectory.Checked && (string.IsNullOrWhiteSpace(textBoxOutputDirectory.Text) || !Directory.Exists(textBoxOutputDirectory.Text))) {
-                MessageBox.Show("WARNING: Output directory not found. Please check your settings.", Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                ToggleSettings();
-                return;
-            }
 
-            var rowsNotProcessed = dataGridFiles.Rows.ToArray().Where(x => string.IsNullOrWhiteSpace((string)x.Cells["DataGridColumnStatus"].Value) || (string)x.Cells["DataGridColumnStatus"].Value == "Cancelled");
-            if (rowsNotProcessed.Count() == 0) return;
-            stopWorking = false;
+            var rowsNotProcessed = dataGridFiles.Rows.ToArray().Where(row
+                => string.IsNullOrWhiteSpace((string)row.Cells["DataGridColumnStatus"].Value) || (string)row.Cells["DataGridColumnStatus"].Value == "Cancelled");
+            if (rowsNotProcessed.Count() == 0) { return; }
 
+            // reset progress
             ToggleStartStopMenu();
+            ProgressReset(rowsNotProcessed.Count());
+            cancellationToken = new CancellationTokenSource();
 
-            toolStripBottomProgressBar.Maximum = rowsNotProcessed.Count();
-            toolStripBottomProgressBar.Value = 0;
-            TaskbarProgress.SetState(Handle, TaskbarProgress.TaskbarStates.Normal);
-            TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
-            long uncompressedTotal = 0;
-            long compressedTotal = 0;
-
-            foreach (DataGridViewRow row in rowsNotProcessed) {
-                dataGridFiles.CurrentCell = row.Cells[0];
-
-                toolStripBottomStatus.Text = string.Format("{0}/{1} - {2}", toolStripBottomProgressBar.Value + 1, toolStripBottomProgressBar.Maximum, row.Cells[0].Value);
-                if (stopWorking) {
-                    row.Cells["DataGridColumnStatus"].Value = "Cancelled";
-                    continue;
-                }
-                row.Cells["DataGridColumnStatus"].Value = "Working...";
-
-                string workpath = row.Cells[0].ToolTipText;
+            foreach(var row in rowsNotProcessed) {
+                string newFileSizeText, status, remarks;
 
                 try {
-                    var oldFileSize = FileHelper.GetFileSize(workpath);
+                    var workPath = row.Cells[0].ToolTipText;
+                    var oldFileSize = FileHelper.GetFileSize(workPath);
+                    uncompressedTotal += oldFileSize;
 
                     // process file
-                    await Task.Run(() => CompressImage(workpath, (int)numUpDownNoOfPasses.Value, checkBoxRemoveImgMetaData.Checked));
+                    workPath = await CompressImage(workPath);
 
-                    // refresh file info
-                    if (radioButtonUseDirectory.Checked) {
-                        var outPath = Path.Combine(textBoxOutputDirectory.Text, Path.GetFileName(workpath));
-                        if (File.Exists(outPath)) workpath = outPath;
-                    }
-                    var newFileSize = FileHelper.GetFileSize(workpath);
-                    var savedSize = oldFileSize - newFileSize;
-                    uncompressedTotal += oldFileSize;
+                    var newFileSize = FileHelper.GetFileSize(workPath);
+                    var savedSize = Math.Abs(newFileSize - oldFileSize);
+                    var percentSaved = Math.Round((double)(savedSize) / oldFileSize * 100);
                     compressedTotal += savedSize;
 
-                    if (Math.Round((double)(savedSize) / oldFileSize * 100) > 0) {
-                        row.Cells["DataGridColumnNewFileSize"].Value = StringHelper.ConvertBytesToCommonSize(newFileSize);
-                        row.Cells["DataGridColumnStatus"].Value = "Finished";
-                        row.Cells["DataGridColumnRemarks"].Value = string.Format("Saved {0} ({1}%)", StringHelper.ConvertBytesToCommonSize(savedSize),
-                            Math.Round((double)(savedSize) / oldFileSize * 100));
+                    if (percentSaved > 0) {
+                        newFileSizeText = newFileSize.AsFileSize();
+                        status = "Finished";
+                        remarks = $"Saved {savedSize.AsFileSize()} ({percentSaved}%)";
+                    } else {
+                        newFileSizeText = newFileSize.AsFileSize();
+                        status = "No changes";
+                        remarks = "Image already optimized";
                     }
-                    else {
-                        row.Cells["DataGridColumnNewFileSize"].Value = StringHelper.ConvertBytesToCommonSize(newFileSize);
-                        row.Cells["DataGridColumnStatus"].Value = "No changes";
-                        row.Cells["DataGridColumnRemarks"].Value = "Image already optimized";
-                    }
+
+                    ProgressIncrement();
+                    toolStripBottomStatus.Text = workPath;
+                } catch (Exception ex) {
+                    newFileSizeText = "";
+                    status = "Error";
+                    remarks = ex.Message;
                 }
-                catch (Exception ex) {
-                    row.Cells["DataGridColumnStatus"].Value = "Error";
-                    row.Cells["DataGridColumnRemarks"].Value = ex.Message;
-                }
-                toolStripBottomProgressBar.Value++;
-                TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
-                Application.DoEvents();
+
+                row.Cells["DataGridColumnNewFileSize"].Value = newFileSizeText;
+                row.Cells["DataGridColumnStatus"].Value = status;
+                row.Cells["DataGridColumnRemarks"].Value = remarks;
             }
 
-            TaskbarProgress.SetState(Handle, TaskbarProgress.TaskbarStates.NoProgress);
-            toolStripBottomStatus.Text = string.Format("Saved a total of {0} ({1}%).",
-                StringHelper.ConvertBytesToCommonSize(compressedTotal),
-                compressedTotal > 0 ? Math.Round((double)(compressedTotal) / uncompressedTotal * 100) : 0);
+            // reset task bar
+            ProgressFinish();
             ToggleStartStopMenu();
+            toolStripBottomStatus.Text = string.Format("Saved a total of {0} ({1}%).",
+                StringHelper.AsFileSize(compressedTotal),
+                compressedTotal > 0 ? Math.Round((double)(compressedTotal) / uncompressedTotal * 100) : 0);
+        }
+
+        private Task<string> CompressImage(string filename)
+        {
+            var settings = new Settings {
+                JpegoptimExecPath = jpegOptimPath,
+                GuetzliExecPath = guetzlix86Path,
+                OptipngExecPath = optiPngPath,
+                JpegQuality = (int)numUpDownJpegQuality.Value,
+                JpegUseGuetzli = checkBoxUseHighMemory.Checked,
+                MemoryLimit = memoryLimit,
+                PngOptimPasses = (int)numUpDownNoOfPasses.Value,
+                RemoveMetadata = checkBoxRemoveImgMetaData.Checked,
+                OutputDirectory = radioButtonUseDirectory.Checked ? textBoxOutputDirectory.Text : ""
+            };
+
+            return CompressImageHelper.CompressImage(filename, settings, cancellationToken.Token);
         }
         #endregion
 
         #region "Form Functions"
+        public void ProgressSet(int value)
+        {
+            toolStripBottomProgressBar.Value = value;
+            TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
+        }
+        public void ProgressIncrement()
+        {
+            toolStripBottomProgressBar.Value++;
+            TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
+        }
+        public void ProgressReset(int max = 0)
+        {
+            toolStripBottomProgressBar.Value = 0;
+            toolStripBottomProgressBar.Maximum = max;
+            TaskbarProgress.SetState(Handle, TaskbarProgress.TaskbarStates.Normal);
+            TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
+        }
+        public void ProgressFinish()
+        {
+            toolStripBottomProgressBar.Value = 0;
+            TaskbarProgress.SetState(Handle, TaskbarProgress.TaskbarStates.NoProgress);
+            TaskbarProgress.SetState(Handle, TaskbarProgress.TaskbarStates.Normal);
+            TaskbarProgress.SetValue(Handle, toolStripBottomProgressBar.Value, toolStripBottomProgressBar.Maximum);
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -297,8 +280,7 @@ namespace ImageCompressor
 
                     Process.GetProcessById(currentProcessId).Kill();
                 }
-            }
-            catch { } // do nothing when process can't be closed
+            } catch { } // do nothing when process can't be closed
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -323,38 +305,25 @@ namespace ImageCompressor
         /// <param name="args">Array of arguments containing file names and folder names</param>
         public void ProcessParameters(object sender, string[] args)
         {
-            Show();
-            Activate();
-            toolStripBottomStatus.Text = "";
-
-            if (args != null && args.Length != 0) {
-                if (args[0] == "-createreg") {
-                    try {
-                        // TODO: CreateContextMenuEntry();
-                    }
-                    catch (Exception ex) { ErrorHelper.ShowErrorMessage(ex, Text, errorLogPath); }
-                }
-                else {
-                    for (int i = 0; i < args.Length; i++) {
-                        if (File.Exists(args[i]) || Directory.Exists(args[i]))
-                            EnumerateAddFilesAndDir(args[i]);
-                    }
-                }
+            if (!args.IsEmpty()) {
+                Task.Factory.StartNew(() => Enumerate(args),
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
         #endregion
 
         #region "DataGridFiles Functions"
-        private int ListViewFirstDisplayed;
-        private int ListViewDisplayed;
-        private int ListViewLastVisible;
-        private int ListViewLastIndex;
+        private int listViewFirstDisplayed;
+        private int listViewDisplayed;
+        private int listViewLastVisible;
+        private int listViewLastIndex;
         private void DataGridFiles_SelectionChanged(object sender, EventArgs e)
         {
             if (dataGridFiles.SelectedCells.Count == 0) {
                 dataGridFiles.ContextMenuStrip = ContextMenuEmptySelection;
-            }
-            else {
+            } else {
                 dataGridFiles.ContextMenuStrip = ContextMenuFileSelected;
                 List<DataGridViewRow> MyRows = new List<DataGridViewRow> { };
                 foreach (DataGridViewCell MyCell in dataGridFiles.SelectedCells) {
@@ -366,8 +335,7 @@ namespace ImageCompressor
                 if (MyRows.Count == 1) {
                     RemoveItemToolStripMenuItem.Text = "Remove Row";
                     OpenContainingFolderToolStripMenuItem.Visible = true;
-                }
-                else {
+                } else {
                     RemoveItemToolStripMenuItem.Text = "Remove Rows";
                     OpenContainingFolderToolStripMenuItem.Visible = false;
                 }
@@ -377,8 +345,7 @@ namespace ImageCompressor
         {
             if (e.KeyCode == Keys.Delete) {
                 RemoveItemToolStripMenuItem_Click(null, null);
-            }
-            else if (e.KeyCode == Keys.Escape) {
+            } else if (e.KeyCode == Keys.Escape) {
                 dataGridFiles.ClearSelection();
             }
         }
@@ -389,30 +356,28 @@ namespace ImageCompressor
         private void DataGridFiles_DragDrop(object sender, DragEventArgs e)
         {
             if ((e.AllowedEffect & DragDropEffects.Copy) == DragDropEffects.Copy) {
-                foreach (string MyFile in e.Data.GetData(DataFormats.FileDrop) as Array) {
-                    if (stopWorking) return;
-                    if (File.Exists(MyFile) && IsValidFile(MyFile)) EnumerateAddFilesAndDir(MyFile);
-                    else if (Directory.Exists(MyFile)) EnumerateAddFilesAndDir(MyFile);
-                }
+                var source = (e.Data.GetData(DataFormats.FileDrop) as Array).Cast<string>();
+                Enumerate(source);
             }
         }
-        private void DataGridFilesAddRow(string filename)
+        private void DataGridFilesAddRow(string filepath)
         {
-            if (dataGridFiles.Rows.ToArray().Where(x => x.Cells[0].ToolTipText == filename).Count() > 0) return;
+            if (dataGridFiles.Rows.ToArray().Where(x => x.Cells[0].ToolTipText == filepath).Count() > 0) { return; }
 
-            ListViewFirstDisplayed = dataGridFiles.FirstDisplayedScrollingRowIndex;
-            ListViewDisplayed = dataGridFiles.DisplayedRowCount(true);
-            ListViewLastVisible = (ListViewFirstDisplayed + ListViewDisplayed) - 1;
-            ListViewLastIndex = dataGridFiles.RowCount - 1;
+            listViewFirstDisplayed = dataGridFiles.FirstDisplayedScrollingRowIndex;
+            listViewDisplayed = dataGridFiles.DisplayedRowCount(true);
+            listViewLastVisible = listViewFirstDisplayed + listViewDisplayed - 1;
+            listViewLastIndex = dataGridFiles.RowCount - 1;
 
-            var fileInfo = new FileInfo(filename);
+            var fileInfo = new FileInfo(filepath);
+            var filename = Path.GetFileName(filepath);
+            var dirname = Path.GetDirectoryName(filepath);
 
-            var i = dataGridFiles.Rows.Add("<" + Path.GetFileName(filename) + "> " + Path.GetDirectoryName(filename), "", StringHelper.ConvertBytesToCommonSize(fileInfo.Length), "", StringHelper.ConvertToShortDateTime(fileInfo.CreationTime), "File not yet processed.");
+            var i = dataGridFiles.Rows.Add($"<{filename}> {dirname}", "", fileInfo.Length.AsFileSize(), "", fileInfo.CreationTime.ToShortTimeDateString(), "File not yet processed.");
 
-            dataGridFiles.Rows[i].Cells[0].ToolTipText = filename;
+            dataGridFiles.Rows[i].Cells[0].ToolTipText = filepath;
 
-            if (ListViewLastVisible == ListViewLastIndex)
-                dataGridFiles.FirstDisplayedScrollingRowIndex = ListViewFirstDisplayed + 1;
+            if (listViewLastVisible == listViewLastIndex) { dataGridFiles.FirstDisplayedScrollingRowIndex = listViewFirstDisplayed + 1; }
         }
 
         #endregion
@@ -431,8 +396,7 @@ namespace ImageCompressor
 
                 ToggleSettings();
                 SaveSettings();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 MessageBox.Show("WARNING: " + ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -443,14 +407,14 @@ namespace ImageCompressor
             ToggleSettings();
         }
 
-        private void buttonBrowseDirectory_Click(object sender, EventArgs e)
+        private void ButtonBrowseDirectory_Click(object sender, EventArgs e)
         {
-            if (DialogFolder.ShowDialog() == DialogResult.OK && Directory.Exists(DialogFolder.SelectedPath)) {
-                textBoxOutputDirectory.Text = DialogFolder.SelectedPath;
+            if (dialogFolder.ShowDialog() == DialogResult.OK && Directory.Exists(dialogFolder.SelectedPath)) {
+                textBoxOutputDirectory.Text = dialogFolder.SelectedPath;
             }
         }
 
-        private void radioButtonOverwriteOriginal_CheckedChanged(object sender, EventArgs e)
+        private void RadioButtonOverwriteOriginal_CheckedChanged(object sender, EventArgs e)
         {
             groupBoxDifferentDir.Enabled = !radioButtonOverwriteOriginal.Checked;
         }
@@ -459,16 +423,17 @@ namespace ImageCompressor
         #region "Top Menu"
         private void AddFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (DialogOpenFile.ShowDialog() == DialogResult.OK) {
-                foreach (var filename in DialogOpenFile.FileNames) {
-                    EnumerateAddFilesAndDir(filename);
+            if (dialogOpenFile.ShowDialog() == DialogResult.OK) {
+                foreach (var filename in dialogOpenFile.FileNames) {
+                    Enumerate(filename);
                 }
             }
         }
         private void AddFoldersToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (DialogFolder.ShowDialog() == DialogResult.OK && Directory.Exists(DialogFolder.SelectedPath)) {
-                EnumerateAddFilesAndDir(DialogFolder.SelectedPath);
+            if (dialogFolder.ShowDialog() == DialogResult.OK && Directory.Exists(dialogFolder.SelectedPath)) {
+                cancellationToken = new CancellationTokenSource();
+                Enumerate(dialogFolder.SelectedPath);
             }
         }
         private void SettingsMenuItem_Click(object sender, EventArgs e)
@@ -496,21 +461,28 @@ namespace ImageCompressor
         #region "Start/Stop Menu Bar"
         private void StartToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            #pragma warning disable CS4014
+            // Because this call is not awaited, execution of the current method continues before the call is completed
             InitDataGridFilesCompressImages();
+            #pragma warning restore CS4014
         }
 
         private void StopToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try {
-                Process.GetProcessById(currentProcessId).Kill();
+                cancellationToken.Cancel();
+                // reset task bar
+                ProgressFinish();
+                ToggleStartStopMenu();
+            } catch (ArgumentException) {
+                // do nothing when process does not exists
+            } catch (Exception ex) {
+                ErrorHelper.ShowErrorMessage(ex, Text, errorLogPath);
             }
-            catch (ArgumentException) { } // do nothing when process does not exists
-            catch (Exception ex) { ErrorHelper.ShowErrorMessage(ex, Text, errorLogPath); }
-            stopWorking = true;
         }
         #endregion
 
-        #region "Context Menu File Selected Functions"
+        #region "Context Menu File"
         private void RemoveItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow row in dataGridFiles.SelectedRows.ToArray()) {
@@ -525,19 +497,15 @@ namespace ImageCompressor
             }
         }
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow row in dataGridFiles.SelectedRows.ToArray()) {
                 ProcessHelper.RunProcessAsync("explorer.exe", row.Cells[0].ToolTipText);
             }
         }
-        #endregion
 
-        #region "Context Menu Empty Selection Functions"
         private void ClearAllToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            dataGridFiles.Rows.Clear();
-        }
+            => dataGridFiles.Rows.Clear();
         #endregion
     }
 }
