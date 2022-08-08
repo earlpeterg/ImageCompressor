@@ -70,10 +70,9 @@ namespace ImageCompressor.Properties {
         ///This application supports the JPG and PNG image formats.
         ///
         ///Uses the following library:
-        ///Jpegoptim v1.3.0  Copyright (c)  Timo Kokkonen, 1996,2013.
-        ///https://sourceforge.net/projects/jpegoptim/
-        ///optipng 0.7.6 Copyright (C) 2001-2016 Cosmin Truta and the Contributing Authors.
-        ///https://sourceforge.net/projects/optipng/.
+        ///Guetzli v1.0.1 Copyright (c) 1996-2013, Google and the Contributing Authors.
+        ///Guetzli is a JPEG encoder that aims for excellent compression density at high visual quality.
+        ///Jpegoptim v1.3.0 Copyright (c) 1996-2013, Timo Kokkonen and the Contributing Authors.        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string AboutInfo {
             get {
