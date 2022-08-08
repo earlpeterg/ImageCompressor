@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 
-namespace ImageCompressor
-{
+namespace ImageCompressor {
     public class Settings
     {
         public string JpegoptimExecPath { get; set; }
@@ -19,5 +14,8 @@ namespace ImageCompressor
 
         public bool RemoveMetadata { get; set; }
         public string OutputDirectory { get; set; }
+
+        public bool ResizeToMaxBounds { get; set; }
+        public Size MaxResolution { get; set; }
     }
 }

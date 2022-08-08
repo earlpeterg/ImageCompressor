@@ -130,7 +130,8 @@
     <value>This option will significantly reduce file size of JPEG files, but
 uses a large amount of memory. During runtime, your PC
 should have about 300MB of free memory and may take
-up to 1 minute of processing per 1MP of an image.</value>
+up to 1 minute of processing per 1MP of an image.
+Default: Unchecked</value>
   </data>
   <data name="numUpDownNoOfPasses.ToolTip" xml:space="preserve">
     <value>The number of passes determines how the program attempts to optimize
@@ -140,7 +141,9 @@ level, the more space you may save but may take more time as it is slower.</valu
   <data name="LabelNoOfPasses.ToolTip" xml:space="preserve">
     <value>The number of passes determines how the program attempts to optimize
 your PNG image. The lower the level, the minifal the effort. The higher the
-level, the more space you may save but may take more time as it is slower.</value>
+level, the more space you may save but may take more time as it is slower.
+
+Default: 3 passes</value>
   </data>
   <metadata name="DataGridColumnFileName.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>

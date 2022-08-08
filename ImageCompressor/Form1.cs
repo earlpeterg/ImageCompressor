@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -116,7 +117,11 @@ namespace ImageCompressor
                     numUpDownJpegQuality.Value = decimal.Parse(iniFile.ReadValue("", "JpegQuality"));
                     checkBoxUseHighMemory.Checked = iniFile.ReadValue("", "UseHighMemory") == "True";
                     checkBoxRemoveImgMetaData.Checked = iniFile.ReadValue("", "RemoveImgMetaData") == "True";
-                } catch {
+                    checkBoxResizeToMaxBounds.Checked = iniFile.ReadValue("", "ResizeToMaxBounds") == "True";
+                    numericFieldMaxWidth.Value = decimal.Parse(iniFile.ReadValue("", "MaxResolutionWidth"));
+                    numericFieldMaxHeight.Value = decimal.Parse(iniFile.ReadValue("", "MaxResolutionHeight"));
+                }
+                catch {
                     ResetDefaultSettings();
                 }
             }
@@ -135,13 +140,16 @@ namespace ImageCompressor
 
                 var iniFile = new INIClass(iniFilePath);
                 iniFile.WriteValue("", "OverwriteOriginal", radioButtonOverwriteOriginal.Checked.ToString());
-                iniFile.WriteValue("", "OverwriteOriginal", (!radioButtonUseDirectory.Checked).ToString());
                 iniFile.WriteValue("", "OutputDirectory", textBoxOutputDirectory.Text);
                 iniFile.WriteValue("", "NoOfPasses", numUpDownNoOfPasses.Value.ToString());
                 iniFile.WriteValue("", "JpegQuality", numUpDownJpegQuality.Value.ToString());
                 iniFile.WriteValue("", "UseHighMemory", checkBoxUseHighMemory.Checked.ToString());
                 iniFile.WriteValue("", "RemoveImgMetaData", checkBoxRemoveImgMetaData.Checked.ToString());
-            } catch (Exception ex) {
+                iniFile.WriteValue("", "ResizeToMaxBounds", checkBoxResizeToMaxBounds.Checked.ToString());
+                iniFile.WriteValue("", "MaxResolutionWidth", numericFieldMaxWidth.Value.ToString());
+                iniFile.WriteValue("", "MaxResolutionHeight", numericFieldMaxHeight.Value.ToString());
+            }
+            catch (Exception ex) {
                 toolStripBottomStatus.Text = "ERROR: " + ex.Message;
             }
         }
@@ -156,9 +164,12 @@ namespace ImageCompressor
                 return;
             }
 
-            var rowsNotProcessed = dataGridFiles.Rows.ToArray().Where(row
-                => string.IsNullOrWhiteSpace((string)row.Cells["DataGridColumnStatus"].Value) || (string)row.Cells["DataGridColumnStatus"].Value == "Cancelled");
-            if (rowsNotProcessed.Count() == 0) { return; }
+            var rowsNotProcessed = dataGridFiles.Rows.ToArray().Where(row => {
+                var cellValue = (string)row.Cells["DataGridColumnStatus"].Value;
+                return string.IsNullOrWhiteSpace(cellValue) || cellValue == "Cancelled" || cellValue == "Error";
+            });
+
+            if (rowsNotProcessed.IsEmpty()) { return; }
 
             // reset progress
             ToggleStartStopMenu();
@@ -178,15 +189,15 @@ namespace ImageCompressor
 
                     var newFileSize = FileHelper.GetFileSize(workPath);
                     var savedSize = Math.Abs(newFileSize - oldFileSize);
-                    var percentSaved = Math.Round((double)(savedSize) / oldFileSize * 100);
+                    var percentSaved = Math.Round((double)savedSize / oldFileSize * 100);
                     compressedTotal += savedSize;
 
                     if (percentSaved > 0) {
-                        newFileSizeText = newFileSize.AsFileSize();
+                        newFileSizeText = StringHelper.ToReadableFileSize(newFileSize);
                         status = "Finished";
-                        remarks = $"Saved {savedSize.AsFileSize()} ({percentSaved}%)";
+                        remarks = $"Saved {StringHelper.ToReadableFileSize(savedSize)} ({percentSaved}%)";
                     } else {
-                        newFileSizeText = newFileSize.AsFileSize();
+                        newFileSizeText = StringHelper.ToReadableFileSize(newFileSize);
                         status = "No changes";
                         remarks = "Image already optimized";
                     }
@@ -208,8 +219,8 @@ namespace ImageCompressor
             ProgressFinish();
             ToggleStartStopMenu();
             toolStripBottomStatus.Text = string.Format("Saved a total of {0} ({1}%).",
-                StringHelper.AsFileSize(compressedTotal),
-                compressedTotal > 0 ? Math.Round((double)(compressedTotal) / uncompressedTotal * 100) : 0);
+                StringHelper.ToReadableFileSize(compressedTotal),
+                compressedTotal > 0 ? Math.Round((double)compressedTotal / uncompressedTotal * 100) : 0);
         }
 
         private Task<string> CompressImage(string filename)
@@ -223,7 +234,9 @@ namespace ImageCompressor
                 MemoryLimit = memoryLimit,
                 PngOptimPasses = (int)numUpDownNoOfPasses.Value,
                 RemoveMetadata = checkBoxRemoveImgMetaData.Checked,
-                OutputDirectory = radioButtonUseDirectory.Checked ? textBoxOutputDirectory.Text : ""
+                OutputDirectory = radioButtonUseDirectory.Checked ? textBoxOutputDirectory.Text : "",
+                ResizeToMaxBounds = checkBoxResizeToMaxBounds.Checked,
+                MaxResolution = new Size((int)numericFieldMaxWidth.Value, (int)numericFieldMaxHeight.Value)
             };
 
             return CompressImageHelper.CompressImage(filename, settings, cancellationToken.Token);
@@ -325,14 +338,16 @@ namespace ImageCompressor
                 dataGridFiles.ContextMenuStrip = ContextMenuEmptySelection;
             } else {
                 dataGridFiles.ContextMenuStrip = ContextMenuFileSelected;
-                List<DataGridViewRow> MyRows = new List<DataGridViewRow> { };
+                List<DataGridViewRow> rows = new List<DataGridViewRow> { };
                 foreach (DataGridViewCell MyCell in dataGridFiles.SelectedCells) {
-                    MyRows.Add(MyCell.OwningRow);
+                    rows.Add(MyCell.OwningRow);
                 }
 
-                MyRows = MyRows.Distinct().ToList();
+                //var rows = dataGridFiles.SelectedCells.Cast<DataGridViewCell>().Select(cell => cell.OwningRow).Distinct();
 
-                if (MyRows.Count == 1) {
+                rows = rows.Distinct().ToList();
+
+                if (rows.Count == 1) {
                     RemoveItemToolStripMenuItem.Text = "Remove Row";
                     OpenContainingFolderToolStripMenuItem.Visible = true;
                 } else {
@@ -373,7 +388,7 @@ namespace ImageCompressor
             var filename = Path.GetFileName(filepath);
             var dirname = Path.GetDirectoryName(filepath);
 
-            var i = dataGridFiles.Rows.Add($"<{filename}> {dirname}", "", fileInfo.Length.AsFileSize(), "", fileInfo.CreationTime.ToShortTimeDateString(), "File not yet processed.");
+            var i = dataGridFiles.Rows.Add($"<{filename}> {dirname}", "", StringHelper.ToReadableFileSize(fileInfo.Length), "", fileInfo.CreationTime.ToShortTimeDateString(), "File not yet processed.");
 
             dataGridFiles.Rows[i].Cells[0].ToolTipText = filepath;
 
@@ -417,6 +432,10 @@ namespace ImageCompressor
         private void RadioButtonOverwriteOriginal_CheckedChanged(object sender, EventArgs e)
         {
             groupBoxDifferentDir.Enabled = !radioButtonOverwriteOriginal.Checked;
+        }
+
+        private void CheckBoxResizeToMaxBounds_CheckedChanged(object sender, EventArgs e) {
+            groupBoxResizeImage.Enabled = checkBoxResizeToMaxBounds.Checked;
         }
         #endregion
 

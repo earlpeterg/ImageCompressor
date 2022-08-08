@@ -44,6 +44,11 @@
             this.toolStripBottomStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.boxSettings = new System.Windows.Forms.GroupBox();
+            this.checkBoxResizeToMaxBounds = new System.Windows.Forms.CheckBox();
+            this.groupBoxResizeImage = new System.Windows.Forms.GroupBox();
+            this.numericFieldMaxHeight = new System.Windows.Forms.NumericUpDown();
+            this.numericFieldMaxWidth = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
             this.checkBoxUseHighMemory = new System.Windows.Forms.CheckBox();
             this.numUpDownJpegQuality = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
@@ -60,6 +65,12 @@
             this.textBoxOutputDirectory = new System.Windows.Forms.TextBox();
             this.InfoToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.dataGridFiles = new System.Windows.Forms.DataGridView();
+            this.DataGridColumnFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridColumnStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridColumnFileSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridColumnNewFileSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridColumnDateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridColumnRemarks = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menuBarSecondary = new System.Windows.Forms.MenuStrip();
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,15 +82,12 @@
             this.RemoveItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenContainingFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DataGridColumnFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataGridColumnStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataGridColumnFileSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataGridColumnNewFileSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataGridColumnDateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.DataGridColumnRemarks = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menuBarTop.SuspendLayout();
             this.statusBar.SuspendLayout();
             this.boxSettings.SuspendLayout();
+            this.groupBoxResizeImage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericFieldMaxHeight)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericFieldMaxWidth)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownJpegQuality)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownNoOfPasses)).BeginInit();
             this.groupBoxDifferentDir.SuspendLayout();
@@ -99,6 +107,7 @@
             this.HelpToolStripMenuItem});
             this.menuBarTop.Location = new System.Drawing.Point(0, 0);
             this.menuBarTop.Name = "menuBarTop";
+            this.menuBarTop.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
             this.menuBarTop.Size = new System.Drawing.Size(1200, 31);
             this.menuBarTop.TabIndex = 34;
             // 
@@ -189,7 +198,7 @@
             this.toolStripStatusLabel1});
             this.statusBar.Location = new System.Drawing.Point(0, 394);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Padding = new System.Windows.Forms.Padding(2, 0, 19, 0);
+            this.statusBar.Padding = new System.Windows.Forms.Padding(3, 0, 19, 0);
             this.statusBar.Size = new System.Drawing.Size(1200, 29);
             this.statusBar.TabIndex = 35;
             // 
@@ -212,6 +221,8 @@
             // 
             // boxSettings
             // 
+            this.boxSettings.Controls.Add(this.checkBoxResizeToMaxBounds);
+            this.boxSettings.Controls.Add(this.groupBoxResizeImage);
             this.boxSettings.Controls.Add(this.checkBoxUseHighMemory);
             this.boxSettings.Controls.Add(this.numUpDownJpegQuality);
             this.boxSettings.Controls.Add(this.label2);
@@ -226,19 +237,107 @@
             this.boxSettings.Controls.Add(this.groupBoxDifferentDir);
             this.boxSettings.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boxSettings.Location = new System.Drawing.Point(392, 30);
-            this.boxSettings.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.boxSettings.Margin = new System.Windows.Forms.Padding(4);
             this.boxSettings.Name = "boxSettings";
-            this.boxSettings.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.boxSettings.Size = new System.Drawing.Size(595, 315);
-            this.boxSettings.TabIndex = 37;
+            this.boxSettings.Padding = new System.Windows.Forms.Padding(4);
+            this.boxSettings.Size = new System.Drawing.Size(595, 380);
+            this.boxSettings.TabIndex = 0;
             this.boxSettings.TabStop = false;
             this.boxSettings.Visible = false;
+            // 
+            // checkBoxResizeToMaxBounds
+            // 
+            this.checkBoxResizeToMaxBounds.AutoSize = true;
+            this.checkBoxResizeToMaxBounds.Location = new System.Drawing.Point(20, 258);
+            this.checkBoxResizeToMaxBounds.Margin = new System.Windows.Forms.Padding(4);
+            this.checkBoxResizeToMaxBounds.Name = "checkBoxResizeToMaxBounds";
+            this.checkBoxResizeToMaxBounds.Size = new System.Drawing.Size(214, 27);
+            this.checkBoxResizeToMaxBounds.TabIndex = 9;
+            this.checkBoxResizeToMaxBounds.Text = "Resize image to &bounds";
+            this.InfoToolTip.SetToolTip(this.checkBoxResizeToMaxBounds, "Resizes an image to the maximum possible size that will fit in a bounding box whi" +
+        "le maintaining the aspect ratio.\r\nDefault: Unchecked");
+            this.checkBoxResizeToMaxBounds.UseVisualStyleBackColor = true;
+            this.checkBoxResizeToMaxBounds.CheckedChanged += new System.EventHandler(this.CheckBoxResizeToMaxBounds_CheckedChanged);
+            // 
+            // groupBoxResizeImage
+            // 
+            this.groupBoxResizeImage.Controls.Add(this.numericFieldMaxHeight);
+            this.groupBoxResizeImage.Controls.Add(this.numericFieldMaxWidth);
+            this.groupBoxResizeImage.Controls.Add(this.label3);
+            this.groupBoxResizeImage.Enabled = false;
+            this.groupBoxResizeImage.Location = new System.Drawing.Point(12, 263);
+            this.groupBoxResizeImage.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxResizeImage.Name = "groupBoxResizeImage";
+            this.groupBoxResizeImage.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBoxResizeImage.Size = new System.Drawing.Size(565, 66);
+            this.groupBoxResizeImage.TabIndex = 0;
+            this.groupBoxResizeImage.TabStop = false;
+            // 
+            // numericFieldMaxHeight
+            // 
+            this.numericFieldMaxHeight.Location = new System.Drawing.Point(155, 30);
+            this.numericFieldMaxHeight.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.numericFieldMaxHeight.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.numericFieldMaxHeight.Minimum = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            this.numericFieldMaxHeight.Name = "numericFieldMaxHeight";
+            this.numericFieldMaxHeight.Size = new System.Drawing.Size(120, 29);
+            this.numericFieldMaxHeight.TabIndex = 11;
+            this.numericFieldMaxHeight.ThousandsSeparator = true;
+            this.InfoToolTip.SetToolTip(this.numericFieldMaxHeight, "Maximum Height");
+            this.numericFieldMaxHeight.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            // 
+            // numericFieldMaxWidth
+            // 
+            this.numericFieldMaxWidth.Location = new System.Drawing.Point(8, 30);
+            this.numericFieldMaxWidth.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.numericFieldMaxWidth.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.numericFieldMaxWidth.Minimum = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+            this.numericFieldMaxWidth.Name = "numericFieldMaxWidth";
+            this.numericFieldMaxWidth.Size = new System.Drawing.Size(120, 29);
+            this.numericFieldMaxWidth.TabIndex = 10;
+            this.numericFieldMaxWidth.ThousandsSeparator = true;
+            this.InfoToolTip.SetToolTip(this.numericFieldMaxWidth, "Maximum Width");
+            this.numericFieldMaxWidth.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(133, 31);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(18, 23);
+            this.label3.TabIndex = 0;
+            this.label3.Text = "x";
             // 
             // checkBoxUseHighMemory
             // 
             this.checkBoxUseHighMemory.AutoSize = true;
             this.checkBoxUseHighMemory.Location = new System.Drawing.Point(20, 196);
-            this.checkBoxUseHighMemory.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBoxUseHighMemory.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxUseHighMemory.Name = "checkBoxUseHighMemory";
             this.checkBoxUseHighMemory.Size = new System.Drawing.Size(521, 27);
             this.checkBoxUseHighMemory.TabIndex = 7;
@@ -249,9 +348,9 @@
             // numUpDownJpegQuality
             // 
             this.numUpDownJpegQuality.Location = new System.Drawing.Point(172, 162);
-            this.numUpDownJpegQuality.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numUpDownJpegQuality.Margin = new System.Windows.Forms.Padding(4);
             this.numUpDownJpegQuality.Minimum = new decimal(new int[] {
-            50,
+            80,
             0,
             0,
             0});
@@ -276,7 +375,7 @@
             this.label2.TabIndex = 0;
             this.label2.Text = "Jpeg Quality Level:";
             this.InfoToolTip.SetToolTip(this.label2, "Specify here the quality level of the output JPEG image. May range from 50 to 100" +
-        ".\r\n");
+        ".\r\nDefault: 100");
             // 
             // checkBoxRemoveImgMetaData
             // 
@@ -284,20 +383,20 @@
             this.checkBoxRemoveImgMetaData.Checked = true;
             this.checkBoxRemoveImgMetaData.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxRemoveImgMetaData.Location = new System.Drawing.Point(20, 228);
-            this.checkBoxRemoveImgMetaData.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBoxRemoveImgMetaData.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxRemoveImgMetaData.Name = "checkBoxRemoveImgMetaData";
             this.checkBoxRemoveImgMetaData.Size = new System.Drawing.Size(321, 27);
             this.checkBoxRemoveImgMetaData.TabIndex = 8;
             this.checkBoxRemoveImgMetaData.Text = "&Remove image metadata information.";
             this.InfoToolTip.SetToolTip(this.checkBoxRemoveImgMetaData, "Metadata includes information about the image, like how it was taken,\r\nthe GPS co" +
         "ordinates of the image, the date and time stamp, the camera\r\nsettings used, etc." +
-        "");
+        "\r\nDefault: Checked");
             this.checkBoxRemoveImgMetaData.UseVisualStyleBackColor = true;
             // 
             // numUpDownNoOfPasses
             // 
             this.numUpDownNoOfPasses.Location = new System.Drawing.Point(344, 123);
-            this.numUpDownNoOfPasses.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numUpDownNoOfPasses.Margin = new System.Windows.Forms.Padding(4);
             this.numUpDownNoOfPasses.Maximum = new decimal(new int[] {
             5,
             0,
@@ -334,7 +433,7 @@
             // 
             this.radioButtonUseDirectory.AutoSize = true;
             this.radioButtonUseDirectory.Location = new System.Drawing.Point(20, 54);
-            this.radioButtonUseDirectory.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.radioButtonUseDirectory.Margin = new System.Windows.Forms.Padding(4);
             this.radioButtonUseDirectory.Name = "radioButtonUseDirectory";
             this.radioButtonUseDirectory.Size = new System.Drawing.Size(214, 27);
             this.radioButtonUseDirectory.TabIndex = 2;
@@ -346,7 +445,7 @@
             this.radioButtonOverwriteOriginal.AutoSize = true;
             this.radioButtonOverwriteOriginal.Checked = true;
             this.radioButtonOverwriteOriginal.Location = new System.Drawing.Point(20, 28);
-            this.radioButtonOverwriteOriginal.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.radioButtonOverwriteOriginal.Margin = new System.Windows.Forms.Padding(4);
             this.radioButtonOverwriteOriginal.Name = "radioButtonOverwriteOriginal";
             this.radioButtonOverwriteOriginal.Size = new System.Drawing.Size(200, 27);
             this.radioButtonOverwriteOriginal.TabIndex = 1;
@@ -363,28 +462,28 @@
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 23);
-            this.label1.TabIndex = 29;
+            this.label1.TabIndex = 0;
             this.label1.Text = "Settings";
             // 
             // ButtonSettingsCancel
             // 
             this.ButtonSettingsCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonSettingsCancel.Location = new System.Drawing.Point(477, 267);
-            this.ButtonSettingsCancel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.ButtonSettingsCancel.Location = new System.Drawing.Point(477, 338);
+            this.ButtonSettingsCancel.Margin = new System.Windows.Forms.Padding(4);
             this.ButtonSettingsCancel.Name = "ButtonSettingsCancel";
             this.ButtonSettingsCancel.Size = new System.Drawing.Size(100, 28);
-            this.ButtonSettingsCancel.TabIndex = 27;
+            this.ButtonSettingsCancel.TabIndex = 13;
             this.ButtonSettingsCancel.Text = "&Cancel";
             this.ButtonSettingsCancel.UseVisualStyleBackColor = true;
             this.ButtonSettingsCancel.Click += new System.EventHandler(this.ButtonSettingsCancel_Click);
             // 
             // ButtonSettingsOK
             // 
-            this.ButtonSettingsOK.Location = new System.Drawing.Point(357, 267);
-            this.ButtonSettingsOK.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.ButtonSettingsOK.Location = new System.Drawing.Point(369, 337);
+            this.ButtonSettingsOK.Margin = new System.Windows.Forms.Padding(4);
             this.ButtonSettingsOK.Name = "ButtonSettingsOK";
             this.ButtonSettingsOK.Size = new System.Drawing.Size(100, 28);
-            this.ButtonSettingsOK.TabIndex = 14;
+            this.ButtonSettingsOK.TabIndex = 12;
             this.ButtonSettingsOK.Text = "&OK";
             this.ButtonSettingsOK.UseVisualStyleBackColor = true;
             this.ButtonSettingsOK.Click += new System.EventHandler(this.ButtonSettingsOK_Click);
@@ -395,17 +494,17 @@
             this.groupBoxDifferentDir.Controls.Add(this.textBoxOutputDirectory);
             this.groupBoxDifferentDir.Enabled = false;
             this.groupBoxDifferentDir.Location = new System.Drawing.Point(12, 57);
-            this.groupBoxDifferentDir.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxDifferentDir.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxDifferentDir.Name = "groupBoxDifferentDir";
-            this.groupBoxDifferentDir.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxDifferentDir.Padding = new System.Windows.Forms.Padding(4);
             this.groupBoxDifferentDir.Size = new System.Drawing.Size(565, 66);
-            this.groupBoxDifferentDir.TabIndex = 32;
+            this.groupBoxDifferentDir.TabIndex = 0;
             this.groupBoxDifferentDir.TabStop = false;
             // 
             // buttonBrowseDirectory
             // 
             this.buttonBrowseDirectory.Location = new System.Drawing.Point(520, 23);
-            this.buttonBrowseDirectory.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonBrowseDirectory.Margin = new System.Windows.Forms.Padding(4);
             this.buttonBrowseDirectory.Name = "buttonBrowseDirectory";
             this.buttonBrowseDirectory.Size = new System.Drawing.Size(39, 34);
             this.buttonBrowseDirectory.TabIndex = 4;
@@ -416,7 +515,7 @@
             // textBoxOutputDirectory
             // 
             this.textBoxOutputDirectory.Location = new System.Drawing.Point(8, 26);
-            this.textBoxOutputDirectory.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBoxOutputDirectory.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxOutputDirectory.Name = "textBoxOutputDirectory";
             this.textBoxOutputDirectory.Size = new System.Drawing.Size(509, 29);
             this.textBoxOutputDirectory.TabIndex = 3;
@@ -457,7 +556,7 @@
             this.dataGridFiles.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridFiles.Location = new System.Drawing.Point(0, 63);
-            this.dataGridFiles.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dataGridFiles.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridFiles.Name = "dataGridFiles";
             this.dataGridFiles.ReadOnly = true;
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
@@ -475,6 +574,54 @@
             this.dataGridFiles.Size = new System.Drawing.Size(1200, 331);
             this.dataGridFiles.TabIndex = 39;
             // 
+            // DataGridColumnFileName
+            // 
+            this.DataGridColumnFileName.HeaderText = "File Name";
+            this.DataGridColumnFileName.MinimumWidth = 6;
+            this.DataGridColumnFileName.Name = "DataGridColumnFileName";
+            this.DataGridColumnFileName.ReadOnly = true;
+            this.DataGridColumnFileName.Width = 180;
+            // 
+            // DataGridColumnStatus
+            // 
+            this.DataGridColumnStatus.HeaderText = "Status";
+            this.DataGridColumnStatus.MinimumWidth = 6;
+            this.DataGridColumnStatus.Name = "DataGridColumnStatus";
+            this.DataGridColumnStatus.ReadOnly = true;
+            this.DataGridColumnStatus.Width = 125;
+            // 
+            // DataGridColumnFileSize
+            // 
+            this.DataGridColumnFileSize.HeaderText = "Original File Size";
+            this.DataGridColumnFileSize.MinimumWidth = 6;
+            this.DataGridColumnFileSize.Name = "DataGridColumnFileSize";
+            this.DataGridColumnFileSize.ReadOnly = true;
+            this.DataGridColumnFileSize.Width = 165;
+            // 
+            // DataGridColumnNewFileSize
+            // 
+            this.DataGridColumnNewFileSize.HeaderText = "New File Size";
+            this.DataGridColumnNewFileSize.MinimumWidth = 6;
+            this.DataGridColumnNewFileSize.Name = "DataGridColumnNewFileSize";
+            this.DataGridColumnNewFileSize.ReadOnly = true;
+            this.DataGridColumnNewFileSize.Width = 140;
+            // 
+            // DataGridColumnDateCreated
+            // 
+            this.DataGridColumnDateCreated.HeaderText = "Date Created";
+            this.DataGridColumnDateCreated.MinimumWidth = 6;
+            this.DataGridColumnDateCreated.Name = "DataGridColumnDateCreated";
+            this.DataGridColumnDateCreated.ReadOnly = true;
+            this.DataGridColumnDateCreated.Width = 140;
+            // 
+            // DataGridColumnRemarks
+            // 
+            this.DataGridColumnRemarks.HeaderText = "Remarks";
+            this.DataGridColumnRemarks.MinimumWidth = 6;
+            this.DataGridColumnRemarks.Name = "DataGridColumnRemarks";
+            this.DataGridColumnRemarks.ReadOnly = true;
+            this.DataGridColumnRemarks.Width = 255;
+            // 
             // menuBarSecondary
             // 
             this.menuBarSecondary.ImageScalingSize = new System.Drawing.Size(24, 24);
@@ -483,6 +630,7 @@
             this.stopToolStripMenuItem});
             this.menuBarSecondary.Location = new System.Drawing.Point(0, 31);
             this.menuBarSecondary.Name = "menuBarSecondary";
+            this.menuBarSecondary.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
             this.menuBarSecondary.Size = new System.Drawing.Size(1200, 32);
             this.menuBarSecondary.TabIndex = 40;
             // 
@@ -562,54 +710,6 @@
             this.OpenContainingFolderToolStripMenuItem.Text = "Open containing folder";
             this.OpenContainingFolderToolStripMenuItem.Click += new System.EventHandler(this.OpenContainingFolderToolStripMenuItem_Click);
             // 
-            // DataGridColumnFileName
-            // 
-            this.DataGridColumnFileName.HeaderText = "File Name";
-            this.DataGridColumnFileName.MinimumWidth = 6;
-            this.DataGridColumnFileName.Name = "DataGridColumnFileName";
-            this.DataGridColumnFileName.ReadOnly = true;
-            this.DataGridColumnFileName.Width = 180;
-            // 
-            // DataGridColumnStatus
-            // 
-            this.DataGridColumnStatus.HeaderText = "Status";
-            this.DataGridColumnStatus.MinimumWidth = 6;
-            this.DataGridColumnStatus.Name = "DataGridColumnStatus";
-            this.DataGridColumnStatus.ReadOnly = true;
-            this.DataGridColumnStatus.Width = 125;
-            // 
-            // DataGridColumnFileSize
-            // 
-            this.DataGridColumnFileSize.HeaderText = "Original File Size";
-            this.DataGridColumnFileSize.MinimumWidth = 6;
-            this.DataGridColumnFileSize.Name = "DataGridColumnFileSize";
-            this.DataGridColumnFileSize.ReadOnly = true;
-            this.DataGridColumnFileSize.Width = 165;
-            // 
-            // DataGridColumnNewFileSize
-            // 
-            this.DataGridColumnNewFileSize.HeaderText = "New File Size";
-            this.DataGridColumnNewFileSize.MinimumWidth = 6;
-            this.DataGridColumnNewFileSize.Name = "DataGridColumnNewFileSize";
-            this.DataGridColumnNewFileSize.ReadOnly = true;
-            this.DataGridColumnNewFileSize.Width = 140;
-            // 
-            // DataGridColumnDateCreated
-            // 
-            this.DataGridColumnDateCreated.HeaderText = "Date Created";
-            this.DataGridColumnDateCreated.MinimumWidth = 6;
-            this.DataGridColumnDateCreated.Name = "DataGridColumnDateCreated";
-            this.DataGridColumnDateCreated.ReadOnly = true;
-            this.DataGridColumnDateCreated.Width = 140;
-            // 
-            // DataGridColumnRemarks
-            // 
-            this.DataGridColumnRemarks.HeaderText = "Remarks";
-            this.DataGridColumnRemarks.MinimumWidth = 6;
-            this.DataGridColumnRemarks.Name = "DataGridColumnRemarks";
-            this.DataGridColumnRemarks.ReadOnly = true;
-            this.DataGridColumnRemarks.Width = 255;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -621,8 +721,8 @@
             this.Controls.Add(this.menuBarSecondary);
             this.Controls.Add(this.menuBarTop);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.MinimumSize = new System.Drawing.Size(1001, 365);
+            this.Margin = new System.Windows.Forms.Padding(4);
+            this.MinimumSize = new System.Drawing.Size(1001, 363);
             this.Name = "Form1";
             this.Text = "Image Compressor ";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -632,6 +732,10 @@
             this.statusBar.PerformLayout();
             this.boxSettings.ResumeLayout(false);
             this.boxSettings.PerformLayout();
+            this.groupBoxResizeImage.ResumeLayout(false);
+            this.groupBoxResizeImage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericFieldMaxHeight)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericFieldMaxWidth)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownJpegQuality)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownNoOfPasses)).EndInit();
             this.groupBoxDifferentDir.ResumeLayout(false);
@@ -696,6 +800,11 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn DataGridColumnNewFileSize;
         private System.Windows.Forms.DataGridViewTextBoxColumn DataGridColumnDateCreated;
         private System.Windows.Forms.DataGridViewTextBoxColumn DataGridColumnRemarks;
+        private System.Windows.Forms.CheckBox checkBoxResizeToMaxBounds;
+        private System.Windows.Forms.GroupBox groupBoxResizeImage;
+        private System.Windows.Forms.NumericUpDown numericFieldMaxHeight;
+        private System.Windows.Forms.NumericUpDown numericFieldMaxWidth;
+        private System.Windows.Forms.Label label3;
     }
 }
 
