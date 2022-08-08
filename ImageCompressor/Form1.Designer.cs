@@ -25,10 +25,10 @@
 		private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
             this.menuBarTop = new System.Windows.Forms.MenuStrip();
             this.AddFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddFoldersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -357,10 +357,8 @@
             this.numUpDownJpegQuality.Name = "numUpDownJpegQuality";
             this.numUpDownJpegQuality.Size = new System.Drawing.Size(57, 29);
             this.numUpDownJpegQuality.TabIndex = 6;
-            this.InfoToolTip.SetToolTip(this.numUpDownJpegQuality, "Specify here the quality level of the output JPEG image. May range from 50 to 100" +
-        ".");
             this.numUpDownJpegQuality.Value = new decimal(new int[] {
-            100,
+            90,
             0,
             0,
             0});
@@ -375,7 +373,7 @@
             this.label2.TabIndex = 0;
             this.label2.Text = "Jpeg Quality Level:";
             this.InfoToolTip.SetToolTip(this.label2, "Specify here the quality level of the output JPEG image. May range from 50 to 100" +
-        ".\r\nDefault: 100");
+        ".\r\nDefault: 90");
             // 
             // checkBoxRemoveImgMetaData
             // 
@@ -410,7 +408,6 @@
             this.numUpDownNoOfPasses.Name = "numUpDownNoOfPasses";
             this.numUpDownNoOfPasses.Size = new System.Drawing.Size(57, 29);
             this.numUpDownNoOfPasses.TabIndex = 5;
-            this.InfoToolTip.SetToolTip(this.numUpDownNoOfPasses, resources.GetString("numUpDownNoOfPasses.ToolTip"));
             this.numUpDownNoOfPasses.Value = new decimal(new int[] {
             3,
             0,
@@ -530,14 +527,15 @@
             this.dataGridFiles.AllowDrop = true;
             this.dataGridFiles.AllowUserToAddRows = false;
             this.dataGridFiles.BackgroundColor = System.Drawing.Color.White;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridFiles.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dataGridFiles.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle9.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridFiles.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle9;
             this.dataGridFiles.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridFiles.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.DataGridColumnFileName,
@@ -546,33 +544,37 @@
             this.DataGridColumnNewFileSize,
             this.DataGridColumnDateCreated,
             this.DataGridColumnRemarks});
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridFiles.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle10.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle10.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle10.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle10.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle10.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridFiles.DefaultCellStyle = dataGridViewCellStyle10;
             this.dataGridFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridFiles.Location = new System.Drawing.Point(0, 63);
             this.dataGridFiles.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridFiles.Name = "dataGridFiles";
             this.dataGridFiles.ReadOnly = true;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridFiles.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle11.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle11.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle11.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle11.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle11.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridFiles.RowHeadersDefaultCellStyle = dataGridViewCellStyle11;
             this.dataGridFiles.RowHeadersWidth = 15;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dataGridFiles.RowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dataGridFiles.RowsDefaultCellStyle = dataGridViewCellStyle12;
             this.dataGridFiles.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridFiles.Size = new System.Drawing.Size(1200, 331);
             this.dataGridFiles.TabIndex = 39;
+            this.dataGridFiles.SelectionChanged += new System.EventHandler(this.DataGridFiles_SelectionChanged);
+            this.dataGridFiles.DragDrop += new System.Windows.Forms.DragEventHandler(this.DataGridFiles_DragDrop);
+            this.dataGridFiles.DragEnter += new System.Windows.Forms.DragEventHandler(this.DataGridFiles_DragEnter);
+            this.dataGridFiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.DataGridFiles_KeyUp);
             // 
             // DataGridColumnFileName
             // 
@@ -725,6 +727,7 @@
             this.MinimumSize = new System.Drawing.Size(1001, 363);
             this.Name = "Form1";
             this.Text = "Image Compressor ";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuBarTop.ResumeLayout(false);
             this.menuBarTop.PerformLayout();

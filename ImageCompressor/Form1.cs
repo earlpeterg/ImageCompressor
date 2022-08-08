@@ -29,6 +29,7 @@ namespace ImageCompressor
         private readonly decimal memoryLimit = Math.Round(new ComputerInfo().TotalPhysicalMemory * 0.75m / 1048576);
         private CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
+        // TODO: outdated
         private int currentProcessId = -1;
         private long uncompressedTotal = 0;
         private long compressedTotal = 0;
@@ -39,6 +40,7 @@ namespace ImageCompressor
         /// </summary>
         private bool IsValidFile(string file)
         {
+            // TODO: support for BMP
             var extensions = new string[] { ".jpeg", ".jpg", ".png" };
             try {
                 var fileInfo = new FileInfo(file);
@@ -103,6 +105,9 @@ namespace ImageCompressor
             numUpDownJpegQuality.Value = 100;
             checkBoxUseHighMemory.Checked = false;
             checkBoxRemoveImgMetaData.Checked = true;
+            checkBoxResizeToMaxBounds.Checked = false;
+            numericFieldMaxWidth.Value = 1000;
+            numericFieldMaxHeight.Value = 1000;
         }
         private void LoadSettings()
         {
@@ -272,14 +277,6 @@ namespace ImageCompressor
         public Form1()
         {
             InitializeComponent();
-
-            // events handlers
-            dataGridFiles.DragDrop += DataGridFiles_DragDrop;
-            dataGridFiles.DragEnter += DataGridFiles_DragEnter;
-            dataGridFiles.KeyUp += DataGridFiles_KeyUp;
-            dataGridFiles.SelectionChanged += DataGridFiles_SelectionChanged;
-            dataGridFiles.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            FormClosing += Form1_FormClosing;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -334,20 +331,13 @@ namespace ImageCompressor
         private int listViewLastIndex;
         private void DataGridFiles_SelectionChanged(object sender, EventArgs e)
         {
-            if (dataGridFiles.SelectedCells.Count == 0) {
+            if (dataGridFiles.SelectedCells.IsEmpty()) {
                 dataGridFiles.ContextMenuStrip = ContextMenuEmptySelection;
             } else {
                 dataGridFiles.ContextMenuStrip = ContextMenuFileSelected;
-                List<DataGridViewRow> rows = new List<DataGridViewRow> { };
-                foreach (DataGridViewCell MyCell in dataGridFiles.SelectedCells) {
-                    rows.Add(MyCell.OwningRow);
-                }
+                var rows = dataGridFiles.SelectedCells.Cast<DataGridViewCell>().Select(cell => cell.OwningRow).Distinct();
 
-                //var rows = dataGridFiles.SelectedCells.Cast<DataGridViewCell>().Select(cell => cell.OwningRow).Distinct();
-
-                rows = rows.Distinct().ToList();
-
-                if (rows.Count == 1) {
+                if (rows.Count() == 1) {
                     RemoveItemToolStripMenuItem.Text = "Remove Row";
                     OpenContainingFolderToolStripMenuItem.Visible = true;
                 } else {
@@ -377,7 +367,7 @@ namespace ImageCompressor
         }
         private void DataGridFilesAddRow(string filepath)
         {
-            if (dataGridFiles.Rows.ToArray().Where(x => x.Cells[0].ToolTipText == filepath).Count() > 0) { return; }
+            if (!dataGridFiles.Rows.ToArray().Where(x => x.Cells[0].ToolTipText == filepath).IsEmpty()) { return; }
 
             listViewFirstDisplayed = dataGridFiles.FirstDisplayedScrollingRowIndex;
             listViewDisplayed = dataGridFiles.DisplayedRowCount(true);
@@ -418,7 +408,6 @@ namespace ImageCompressor
 
         private void ButtonSettingsCancel_Click(object sender, EventArgs e)
         {
-            // TODO: Load init settings
             ToggleSettings();
         }
 

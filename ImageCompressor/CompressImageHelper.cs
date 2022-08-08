@@ -1,19 +1,14 @@
-using EarlPeterG.Win;
 using RunProcessAsTask;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ImageCompressor
-{
+namespace ImageCompressor {
     public class CompressImageHelper
     {
         public static async Task<string> CompressImage(string filePath, Settings settings, CancellationToken cancellationToken)
@@ -61,9 +56,8 @@ namespace ImageCompressor
                     processPath = settings.JpegoptimExecPath;
                     processArgs = $"--max={settings.JpegQuality} {(settings.RemoveMetadata ? "--strip-all " : "")}\"{filePath}\"";
                 }
-                // TODO: test for bmp
             } else if (fileExtension == ".png") {
-                // optiong <file> -o <levels> -out "<path>" -strip/-preserve
+                // optipng <file> -o <levels> -out "<path>" -strip/-preserve
                 processPath = settings.OptipngExecPath;
                 processArgs = $"\"{filePath}\" -o {settings.PngOptimPasses} {(settings.RemoveMetadata ? "-strip all" : "-preserve")}";
             } else {
@@ -92,8 +86,7 @@ namespace ImageCompressor
 
             if (scale >= 1) { return image; }
 
-            Size result = new Size((int)(image.Width * scale),
-                                (int)(image.Height * scale));
+            Size result = new Size((int)(image.Width * scale), (int)(image.Height * scale));
             return result;
         }
 
