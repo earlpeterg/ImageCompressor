@@ -13,3 +13,5 @@ Image Compressor is a GUI for optipng, guetzli, and jpegoptim to help optimize i
 ## To Dos
 
 I plan to recreate the project with WPF and also improve code readability with proper threading.
+
+We are open to contributions!
